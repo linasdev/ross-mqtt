@@ -1,0 +1,9 @@
+[package]
+name = "ross-mqtt"
+version = "0.1.0"
+authors = ["Linas Nikiperavičius <linas@linasdev.com>"]
+edition = "2018"
+license-file = "LICENSE.md"
+description = "MQTT client for the Rusty Old Smart System"
+repository = "https://github.com/linasdev/ross-mqtt"
+readme = "README.md"
