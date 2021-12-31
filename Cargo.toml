@@ -7,3 +7,18 @@ license-file = "LICENSE.md"
 description = "MQTT client for the Rusty Old Smart System"
 repository = "https://github.com/linasdev/ross-mqtt"
 readme = "README.md"
+
+[dependencies]
+serialport = "4.0.1"
+paho-mqtt = "0.9.1"
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+chrono = "0.4.19"
+jsonwebtoken = "7.2.0"
+serde = "1.0.132"
+serde_json = "1.0.73"
+ross-configurator = "1.3.0"
+
+[dependencies.ross-protocol]
+version = "2.0.0"
+features = ["std"]
