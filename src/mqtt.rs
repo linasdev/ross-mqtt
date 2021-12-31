@@ -87,22 +87,32 @@ impl<'a> Mqtt<'a> {
         Ok(())
     }
 
-    pub fn start_loop(self, state_updates: Arc<Mutex<Option<GatewayState>>>, commands: Arc<Mutex<Vec<GatewayCommand>>>) {
+    pub fn start_loop(self, state_updates: Arc<Mutex<Option<GatewayState>>>, commands: Arc<Mutex<Vec<GatewayCommand>>>, discover: Arc<Mutex<bool>>) {
+        let state_topic = format!("/devices/{}/state", self.gateway_id);
+        let command_topic = format!("/devices/{}/commands", self.gateway_id);
+        let discover_topic = format!("/devices/{}/commands/discover", self.gateway_id);
+
         loop {
             let mut state_update = state_updates.lock().unwrap();
 
             match self.rx.as_ref().unwrap().try_recv() {
                 Ok(msg) => {
                     if let Some(msg) = msg {
-                        match serde_json::de::from_str(&*msg.payload_str()) {
-                            Ok(gateway_command) => {
-                                commands.lock().unwrap().push(gateway_command);
-                            },
-                            Err(err) => {
-                                println!("Gateway command deserialization failed with error: {}", err);
+                        let topic = msg.topic();
+
+                        if topic == command_topic {
+                            match serde_json::de::from_str(&*msg.payload_str()) {
+                                Ok(gateway_command) => {
+                                    commands.lock().unwrap().push(gateway_command);
+                                },
+                                Err(err) => {
+                                    println!("Gateway command deserialization failed with error: {}", err);
+                                }
                             }
+                        } else if topic == discover_topic {
+                            println!("Got a discover request");
+                            *discover.lock().unwrap() = true;
                         }
-                    } else {
                     }
                 }
                 Err(TryRecvError::Empty) => {},
@@ -110,8 +120,6 @@ impl<'a> Mqtt<'a> {
             }
 
             if let Some(gateway_state) = &*state_update {
-                let state_topic = format!("/devices/{}/state", self.gateway_id);
-
                 let content = serde_json::ser::to_string(&gateway_state).unwrap();
                 let message = Message::new(&state_topic, content, 1);
                 

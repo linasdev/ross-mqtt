@@ -8,11 +8,13 @@ use ross_protocol::interface::serial::Serial;
 use ross_protocol::event::bcm::{BcmValue, BcmChangeBrightnessEvent};
 use ross_protocol::event::relay::RelaySetValueEvent;
 use ross_protocol::convert_packet::ConvertPacket;
+use ross_protocol::event::gateway::GatewayDiscoverEvent;
 use ross_configurator::get_programmer::get_programmer;
+use ross_configurator::get_devices::get_devices;
 
 use crate::command::CommandPayload;
 use crate::mqtt::{MqttCreateOptions, MqttConnectOptions, Mqtt};
-use crate::state::{DeviceState, GatewayState, PeripheralState};
+use crate::state::{DeviceState, GatewayState};
 
 mod mqtt;
 mod command;
@@ -55,11 +57,14 @@ fn main() {
 
     let state_updates = Arc::new(Mutex::new(None));
     let commands = Arc::new(Mutex::new(vec![]));
+    let discover = Arc::new(Mutex::new(false));
 
     let state_updates_clone = Arc::clone(&state_updates);
     let commands_clone = Arc::clone(&commands);
+    let discover_clone = Arc::clone(&discover);
+
     std::thread::spawn(move || {
-        mqtt.start_loop(state_updates_clone, commands_clone);
+        mqtt.start_loop(state_updates_clone, commands_clone, discover_clone);
     });
 
     let mut protocol = {
@@ -146,6 +151,25 @@ fn main() {
                     println!("Sent packet ({:?})", packet);
                 }
             }
+        }
+
+        if *discover.lock().unwrap() {
+            let devices = get_devices(&mut protocol, &programmer).unwrap();
+            
+            for device in devices {
+                let packet = GatewayDiscoverEvent {
+                    device_address: device.bootloader_address,
+                    gateway_address: programmer.programmer_address,
+                }.to_packet();
+
+                if let Err(err) = protocol.send_packet(&packet) {
+                    println!("Failed to send packet with error ({:?})", err);
+                } else {
+                    println!("Sent packet ({:?})", packet);
+                }
+            }
+
+            *discover.lock().unwrap() = false;
         }
     }
 }
