@@ -1,9 +1,11 @@
-use serde::Serialize;
-use paho_mqtt::{ Message, Client, CreateOptionsBuilder, SslOptionsBuilder, ConnectOptionsBuilder, SslVersion};
-use jsonwebtoken::{encode, Header, EncodingKey, Algorithm};
-use std::io::{Read, BufReader};
-use std::fs::File;
 use chrono::Utc;
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use paho_mqtt::{
+    Client, ConnectOptionsBuilder, CreateOptionsBuilder, Message, SslOptionsBuilder, SslVersion,
+};
+use serde::Serialize;
+use std::fs::File;
+use std::io::{BufReader, Read};
 use std::sync::mpsc::{Receiver, TryRecvError};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -42,7 +44,13 @@ pub struct Mqtt<'a> {
 
 impl<'a> Mqtt<'a> {
     pub fn new(create_options: MqttCreateOptions<'a>) -> Result<Self, paho_mqtt::Error> {
-        let client_id = format!("projects/{}/locations/{}/registries/{}/devices/{}", create_options.gcp_project_id, create_options.gcp_region, create_options.gcp_registry_name, create_options.gateway_id);
+        let client_id = format!(
+            "projects/{}/locations/{}/registries/{}/devices/{}",
+            create_options.gcp_project_id,
+            create_options.gcp_region,
+            create_options.gcp_registry_name,
+            create_options.gateway_id
+        );
 
         let create_opts = CreateOptionsBuilder::new()
             .client_id(client_id)
@@ -59,9 +67,13 @@ impl<'a> Mqtt<'a> {
         })
     }
 
-    pub fn connect(&mut self, connect_options: MqttConnectOptions<'a>) -> Result<(), jsonwebtoken::errors::Error> {
+    pub fn connect(
+        &mut self,
+        connect_options: MqttConnectOptions<'a>,
+    ) -> Result<(), jsonwebtoken::errors::Error> {
         let ssl_opts = SslOptionsBuilder::new()
-            .trust_store(connect_options.trust_store_path).unwrap()
+            .trust_store(connect_options.trust_store_path)
+            .unwrap()
             .ssl_version(SslVersion::Tls_1_2)
             .verify(true)
             .disable_default_trust_store(true)
@@ -87,7 +99,12 @@ impl<'a> Mqtt<'a> {
         Ok(())
     }
 
-    pub fn start_loop(self, state_updates: Arc<Mutex<Option<GatewayState>>>, commands: Arc<Mutex<Vec<GatewayCommand>>>, discover: Arc<Mutex<bool>>) {
+    pub fn start_loop(
+        self,
+        state_updates: Arc<Mutex<Option<GatewayState>>>,
+        commands: Arc<Mutex<Vec<GatewayCommand>>>,
+        discover: Arc<Mutex<bool>>,
+    ) {
         let state_topic = format!("/devices/{}/state", self.gateway_id);
         let command_topic = format!("/devices/{}/commands", self.gateway_id);
         let discover_topic = format!("/devices/{}/commands/discover", self.gateway_id);
@@ -104,9 +121,12 @@ impl<'a> Mqtt<'a> {
                             match serde_json::de::from_str(&*msg.payload_str()) {
                                 Ok(gateway_command) => {
                                     commands.lock().unwrap().push(gateway_command);
-                                },
+                                }
                                 Err(err) => {
-                                    println!("Gateway command deserialization failed with error: {}", err);
+                                    println!(
+                                        "Gateway command deserialization failed with error: {}",
+                                        err
+                                    );
                                 }
                             }
                         } else if topic == discover_topic {
@@ -115,14 +135,14 @@ impl<'a> Mqtt<'a> {
                         }
                     }
                 }
-                Err(TryRecvError::Empty) => {},
+                Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => break,
             }
 
             if let Some(gateway_state) = &*state_update {
                 let content = serde_json::ser::to_string(&gateway_state).unwrap();
                 let message = Message::new(&state_topic, content, 1);
-                
+
                 self.client.publish(message).unwrap();
 
                 *state_update = None;
@@ -133,7 +153,10 @@ impl<'a> Mqtt<'a> {
         }
     }
 
-    fn generate_password(&self, token_expiry_time_s: i64) -> Result<String, jsonwebtoken::errors::Error> {
+    fn generate_password(
+        &self,
+        token_expiry_time_s: i64,
+    ) -> Result<String, jsonwebtoken::errors::Error> {
         let now = Utc::now().timestamp();
 
         let my_claims = JwtClaims {
@@ -141,7 +164,7 @@ impl<'a> Mqtt<'a> {
             iat: now,
             exp: now + token_expiry_time_s,
         };
-        
+
         let f = File::open("./rsa_private.pem").unwrap();
         let mut reader = BufReader::new(f);
         let mut private_key = Vec::new();
@@ -150,7 +173,7 @@ impl<'a> Mqtt<'a> {
         encode(
             &Header::new(Algorithm::RS256),
             &my_claims,
-            &EncodingKey::from_rsa_pem(&private_key).unwrap()
+            &EncodingKey::from_rsa_pem(&private_key).unwrap(),
         )
     }
 }

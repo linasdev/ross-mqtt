@@ -51,20 +51,14 @@ pub enum PeripheralState {
         first: bool,
         #[serde(rename = "SECOND")]
         second: bool,
-    }
+    },
 }
 
 impl From<BcmValue> for PeripheralState {
     fn from(value: BcmValue) -> Self {
         match value {
-            BcmValue::Single(brightness) => PeripheralState::BcmSingle {
-                brightness,
-            },
-            BcmValue::Rgb(red, green, blue) => PeripheralState::BcmRgb {
-                red,
-                green,
-                blue,
-            },
+            BcmValue::Single(brightness) => PeripheralState::BcmSingle { brightness },
+            BcmValue::Rgb(red, green, blue) => PeripheralState::BcmRgb { red, green, blue },
             BcmValue::Rgbw(red, green, blue, white) => PeripheralState::BcmRgbw {
                 red,
                 green,
@@ -78,18 +72,20 @@ impl From<BcmValue> for PeripheralState {
 impl From<RelayValue> for PeripheralState {
     fn from(value: RelayValue) -> Self {
         match value {
-            RelayValue::Single(on) => PeripheralState::RelaySingle {
-                on,
-            },
+            RelayValue::Single(on) => PeripheralState::RelaySingle { on },
             RelayValue::DoubleExclusive(value) => match value {
-                RelayDoubleExclusiveValue::FirstChannelOn => PeripheralState::RelayDoubleExclusive {
-                    first: true,
-                    second: false,
-                },
-                RelayDoubleExclusiveValue::SecondChannelOn => PeripheralState::RelayDoubleExclusive {
-                    first: false,
-                    second: true,
-                },
+                RelayDoubleExclusiveValue::FirstChannelOn => {
+                    PeripheralState::RelayDoubleExclusive {
+                        first: true,
+                        second: false,
+                    }
+                }
+                RelayDoubleExclusiveValue::SecondChannelOn => {
+                    PeripheralState::RelayDoubleExclusive {
+                        first: false,
+                        second: true,
+                    }
+                }
                 RelayDoubleExclusiveValue::NoChannelOn => PeripheralState::RelayDoubleExclusive {
                     first: false,
                     second: false,

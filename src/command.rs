@@ -39,5 +39,5 @@ pub enum CommandPayload {
         blue: u8,
         #[serde(rename = "WHITE")]
         white: u8,
-    }
+    },
 }
