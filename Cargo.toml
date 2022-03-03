@@ -20,5 +20,5 @@ serde_json = "1.0.73"
 ross-configurator = "1.4.0"
 
 [dependencies.ross-protocol]
-version = "2.4.1"
+version = "2.5.0"
 features = ["std"]
