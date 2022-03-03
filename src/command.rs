@@ -33,6 +33,8 @@ pub enum CommandPayload {
         green: u8,
         #[serde(rename = "BLUE")]
         blue: u8,
+        #[serde(rename = "BRIGHTNESS")]
+        brightness: u8,
     },
     BcmSetRgbw {
         #[serde(rename = "RED")]
@@ -43,5 +45,7 @@ pub enum CommandPayload {
         blue: u8,
         #[serde(rename = "WHITE")]
         white: u8,
+        #[serde(rename = "BRIGHTNESS")]
+        brightness: u8,
     },
 }

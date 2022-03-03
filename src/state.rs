@@ -36,6 +36,8 @@ pub enum PeripheralState {
         green: u8,
         #[serde(rename = "BLUE")]
         blue: u8,
+        #[serde(rename = "BRIGHTNESS")]
+        brightness: u8,
     },
     BcmRgbw {
         #[serde(rename = "ON")]
@@ -48,6 +50,8 @@ pub enum PeripheralState {
         blue: u8,
         #[serde(rename = "WHITE")]
         white: u8,
+        #[serde(rename = "BRIGHTNESS")]
+        brightness: u8,
     },
     RelaySingle {
         #[serde(rename = "ON")]
@@ -71,18 +75,20 @@ impl TryFrom<BcmValue> for PeripheralState {
                 on: brightness != 0,
                 brightness,
             }),
-            BcmValue::Rgb(red, green, blue) => Ok(PeripheralState::BcmRgb {
-                on: red != 0 || green != 0 || blue != 0,
+            BcmValue::Rgb(red, green, blue, brightness) => Ok(PeripheralState::BcmRgb {
+                on: (red != 0 || green != 0 || blue != 0) && brightness != 0,
                 red,
                 green,
                 blue,
+                brightness,
             }),
-            BcmValue::Rgbw(red, green, blue, white) => Ok(PeripheralState::BcmRgbw {
-                on: red != 0 || green != 0 || blue != 0 || white != 0,
+            BcmValue::Rgbw(red, green, blue, white, brightness) => Ok(PeripheralState::BcmRgbw {
+                on: (red != 0 || green != 0 || blue != 0 || white != 0) && brightness != 0,
                 red,
                 green,
                 blue,
                 white,
+                brightness,
             }),
         }
     }
