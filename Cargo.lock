@@ -748,9 +748,9 @@ dependencies = [
 
 [[package]]
 name = "ross-config"
-version = "2.25.0"
+version = "2.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "463ee692be23718e0060b35251ccc8a7a1d27660e3d516f18e038785267b3ba0"
+checksum = "0da0ec0226f243cd487679f056d7ce1fb5858f69e0c635bfa4746d91bd3073f5"
 dependencies = [
  "chrono",
  "downcast-rs",
@@ -759,9 +759,9 @@ dependencies = [
 
 [[package]]
 name = "ross-configurator"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f228348fda4f82ceaa58655f68f7432064a784145ea750ac73e28c8df065089"
+checksum = "f8fe15b44312ca73ff589207159864e4d6280c723fb9f8ec867e99c061bb47f3"
 dependencies = [
  "clap",
  "parse_int",
@@ -773,9 +773,9 @@ dependencies = [
 
 [[package]]
 name = "ross-dsl"
-version = "2.20.0"
+version = "2.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee16851260809135183e53ce0a2a73756c85bd12c3cf838833a43b9f70418de8"
+checksum = "c6ed9710ce0da02290306b926f533a2d8f45a7f9cfec560ac9f0ec0933b0cd40"
 dependencies = [
  "cool_asserts",
  "cron-parser",
