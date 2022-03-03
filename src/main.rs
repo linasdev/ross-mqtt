@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use dotenv_codegen::dotenv;
+use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -87,23 +88,27 @@ fn main() {
         .add_packet_handler(
             Box::new(|packet, _protocol| {
                 if let Ok(event) = BcmChangeBrightnessEvent::try_from_packet(packet) {
-                    *state_updates.lock().unwrap() = Some(GatewayState {
-                        device_states: vec![DeviceState {
-                            peripheral_address: event.transmitter_address,
-                            peripheral_index: event.index,
-                            peripheral_state: event.value.into(),
-                        }],
-                    });
+                    if let Ok(peripheral_state) = event.value.try_into() {
+                        *state_updates.lock().unwrap() = Some(GatewayState {
+                            device_states: vec![DeviceState {
+                                peripheral_address: event.transmitter_address,
+                                peripheral_index: event.index,
+                                peripheral_state,
+                            }],
+                        });
+                    }
                 }
 
                 if let Ok(event) = RelaySetValueEvent::try_from_packet(packet) {
-                    *state_updates.lock().unwrap() = Some(GatewayState {
-                        device_states: vec![DeviceState {
-                            peripheral_address: event.transmitter_address,
-                            peripheral_index: event.index,
-                            peripheral_state: event.value.into(),
-                        }],
-                    });
+                    if let Ok(peripheral_state) = event.value.try_into() {
+                        *state_updates.lock().unwrap() = Some(GatewayState {
+                            device_states: vec![DeviceState {
+                                peripheral_address: event.transmitter_address,
+                                peripheral_index: event.index,
+                                peripheral_state,
+                            }],
+                        });
+                    }
                 }
             }),
             false,

@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::convert::TryFrom;
 
 use ross_protocol::event::bcm::BcmValue;
 use ross_protocol::event::relay::{RelayDoubleExclusiveValue, RelayValue};
@@ -60,51 +61,58 @@ pub enum PeripheralState {
     },
 }
 
-impl From<BcmValue> for PeripheralState {
-    fn from(value: BcmValue) -> Self {
+impl TryFrom<BcmValue> for PeripheralState {
+    type Error = ();
+
+    fn try_from(value: BcmValue) -> Result<Self, ()> {
         match value {
-            BcmValue::Single(brightness) => PeripheralState::BcmSingle {
+            BcmValue::Binary(_) => Err(()),
+            BcmValue::Single(brightness) => Ok(PeripheralState::BcmSingle {
                 on: brightness != 0,
                 brightness,
-            },
-            BcmValue::Rgb(red, green, blue) => PeripheralState::BcmRgb {
+            }),
+            BcmValue::Rgb(red, green, blue) => Ok(PeripheralState::BcmRgb {
                 on: red != 0 || green != 0 || blue != 0,
                 red,
                 green,
                 blue,
-            },
-            BcmValue::Rgbw(red, green, blue, white) => PeripheralState::BcmRgbw {
+            }),
+            BcmValue::Rgbw(red, green, blue, white) => Ok(PeripheralState::BcmRgbw {
                 on: red != 0 || green != 0 || blue != 0 || white != 0,
                 red,
                 green,
                 blue,
                 white,
-            },
+            }),
         }
     }
 }
 
-impl From<RelayValue> for PeripheralState {
-    fn from(value: RelayValue) -> Self {
+impl TryFrom<RelayValue> for PeripheralState {
+    type Error = ();
+
+    fn try_from(value: RelayValue) -> Result<Self, ()> {
         match value {
-            RelayValue::Single(on) => PeripheralState::RelaySingle { on },
+            RelayValue::Single(on) => Ok(PeripheralState::RelaySingle { on }),
             RelayValue::DoubleExclusive(value) => match value {
                 RelayDoubleExclusiveValue::FirstChannelOn => {
-                    PeripheralState::RelayDoubleExclusive {
+                    Ok(PeripheralState::RelayDoubleExclusive {
                         first: true,
                         second: false,
-                    }
+                    })
                 }
                 RelayDoubleExclusiveValue::SecondChannelOn => {
-                    PeripheralState::RelayDoubleExclusive {
+                    Ok(PeripheralState::RelayDoubleExclusive {
                         first: false,
                         second: true,
-                    }
+                    })
                 }
-                RelayDoubleExclusiveValue::NoChannelOn => PeripheralState::RelayDoubleExclusive {
-                    first: false,
-                    second: false,
-                },
+                RelayDoubleExclusiveValue::NoChannelOn => {
+                    Ok(PeripheralState::RelayDoubleExclusive {
+                        first: false,
+                        second: false,
+                    })
+                }
             },
         }
     }
