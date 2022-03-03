@@ -123,28 +123,28 @@ fn main() {
         if let Some(gateway_command) = commands.lock().unwrap().pop() {
             for device_command in gateway_command.device_commands.iter() {
                 let packet = match device_command.payload {
-                    CommandPayload::RelayTurnOnSingle => RelaySetValueEvent {
+                    CommandPayload::RelayTurnOnSingle {} => RelaySetValueEvent {
                         relay_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
                         value: RelayValue::Single(true),
                     }
                     .to_packet(),
-                    CommandPayload::RelayTurnOffSingle => RelaySetValueEvent {
+                    CommandPayload::RelayTurnOffSingle {} => RelaySetValueEvent {
                         relay_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
                         value: RelayValue::Single(false),
                     }
                     .to_packet(),
-                    CommandPayload::BcmTurnOn => BcmChangeBrightnessEvent {
+                    CommandPayload::BcmTurnOn {} => BcmChangeBrightnessEvent {
                         bcm_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
                         value: BcmValue::Binary(true),
                     }
                     .to_packet(),
-                    CommandPayload::BcmTurnOff => BcmChangeBrightnessEvent {
+                    CommandPayload::BcmTurnOff {} => BcmChangeBrightnessEvent {
                         bcm_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
