@@ -18,6 +18,10 @@ pub struct DeviceCommand {
 #[derive(Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CommandPayload {
+    RelayTurnOnSingle,
+    RelayTurnOffSingle,
+    BcmTurnOn,
+    BcmTurnOff,
     BcmSetSingle {
         #[serde(rename = "BRIGHTNESS")]
         brightness: u8,

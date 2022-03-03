@@ -9,7 +9,7 @@ use ross_configurator::get_programmer::get_programmer;
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::bcm::{BcmChangeBrightnessEvent, BcmValue};
 use ross_protocol::event::gateway::GatewayDiscoverEvent;
-use ross_protocol::event::relay::RelaySetValueEvent;
+use ross_protocol::event::relay::{RelaySetValueEvent, RelayValue};
 use ross_protocol::interface::serial::Serial;
 use ross_protocol::protocol::{Protocol, BROADCAST_ADDRESS};
 
@@ -123,6 +123,34 @@ fn main() {
         if let Some(gateway_command) = commands.lock().unwrap().pop() {
             for device_command in gateway_command.device_commands.iter() {
                 let packet = match device_command.payload {
+                    CommandPayload::RelayTurnOnSingle => RelaySetValueEvent {
+                        relay_address: device_command.peripheral_address,
+                        transmitter_address: programmer.programmer_address,
+                        index: device_command.peripheral_index,
+                        value: RelayValue::Single(true),
+                    }
+                    .to_packet(),
+                    CommandPayload::RelayTurnOffSingle => RelaySetValueEvent {
+                        relay_address: device_command.peripheral_address,
+                        transmitter_address: programmer.programmer_address,
+                        index: device_command.peripheral_index,
+                        value: RelayValue::Single(false),
+                    }
+                    .to_packet(),
+                    CommandPayload::BcmTurnOn => BcmChangeBrightnessEvent {
+                        bcm_address: device_command.peripheral_address,
+                        transmitter_address: programmer.programmer_address,
+                        index: device_command.peripheral_index,
+                        value: BcmValue::Binary(true),
+                    }
+                    .to_packet(),
+                    CommandPayload::BcmTurnOff => BcmChangeBrightnessEvent {
+                        bcm_address: device_command.peripheral_address,
+                        transmitter_address: programmer.programmer_address,
+                        index: device_command.peripheral_index,
+                        value: BcmValue::Binary(false),
+                    }
+                    .to_packet(),
                     CommandPayload::BcmSetSingle { brightness } => BcmChangeBrightnessEvent {
                         bcm_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
