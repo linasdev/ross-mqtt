@@ -21,13 +21,23 @@ pub struct DeviceState {
 #[derive(Serialize)]
 #[serde(tag = "type", content = "payload", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum PeripheralState {
+    RelaySingle {
+        #[serde(rename = "ON")]
+        on: bool,
+    },
+    RelayDoubleExclusive {
+        #[serde(rename = "FIRST")]
+        first: bool,
+        #[serde(rename = "SECOND")]
+        second: bool,
+    },
     BcmSingle {
         #[serde(rename = "ON")]
         on: bool,
         #[serde(rename = "BRIGHTNESS")]
         brightness: u8,
     },
-    BcmRgb {
+    BcmRgbB {
         #[serde(rename = "ON")]
         on: bool,
         #[serde(rename = "RED")]
@@ -39,7 +49,7 @@ pub enum PeripheralState {
         #[serde(rename = "BRIGHTNESS")]
         brightness: u8,
     },
-    BcmRgbw {
+    BcmRgbwB {
         #[serde(rename = "ON")]
         on: bool,
         #[serde(rename = "RED")]
@@ -53,45 +63,6 @@ pub enum PeripheralState {
         #[serde(rename = "BRIGHTNESS")]
         brightness: u8,
     },
-    RelaySingle {
-        #[serde(rename = "ON")]
-        on: bool,
-    },
-    RelayDoubleExclusive {
-        #[serde(rename = "FIRST")]
-        first: bool,
-        #[serde(rename = "SECOND")]
-        second: bool,
-    },
-}
-
-impl TryFrom<BcmValue> for PeripheralState {
-    type Error = ();
-
-    fn try_from(value: BcmValue) -> Result<Self, ()> {
-        match value {
-            BcmValue::Binary(_) => Err(()),
-            BcmValue::Single(brightness) => Ok(PeripheralState::BcmSingle {
-                on: brightness != 0,
-                brightness,
-            }),
-            BcmValue::Rgb(red, green, blue, brightness) => Ok(PeripheralState::BcmRgb {
-                on: (red != 0 || green != 0 || blue != 0) && brightness != 0,
-                red,
-                green,
-                blue,
-                brightness,
-            }),
-            BcmValue::Rgbw(red, green, blue, white, brightness) => Ok(PeripheralState::BcmRgbw {
-                on: (red != 0 || green != 0 || blue != 0 || white != 0) && brightness != 0,
-                red,
-                green,
-                blue,
-                white,
-                brightness,
-            }),
-        }
-    }
 }
 
 impl TryFrom<RelayValue> for PeripheralState {
@@ -120,6 +91,36 @@ impl TryFrom<RelayValue> for PeripheralState {
                     })
                 }
             },
+        }
+    }
+}
+
+impl TryFrom<BcmValue> for PeripheralState {
+    type Error = ();
+
+    fn try_from(value: BcmValue) -> Result<Self, ()> {
+        match value {
+            BcmValue::Binary(_) => Err(()),
+            BcmValue::Single(brightness) => Ok(PeripheralState::BcmSingle {
+                on: brightness != 0,
+                brightness,
+            }),
+            BcmValue::RgbB(red, green, blue, brightness) => Ok(PeripheralState::BcmRgbB {
+                on: (red != 0 || green != 0 || blue != 0) && brightness != 0,
+                red,
+                green,
+                blue,
+                brightness,
+            }),
+            BcmValue::RgbwB(red, green, blue, white, brightness) => Ok(PeripheralState::BcmRgbwB {
+                on: (red != 0 || green != 0 || blue != 0 || white != 0) && brightness != 0,
+                red,
+                green,
+                blue,
+                white,
+                brightness,
+            }),
+            _ => Err(())
         }
     }
 }

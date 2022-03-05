@@ -158,18 +158,18 @@ fn main() {
                         value: BcmValue::Single(brightness),
                     }
                     .to_packet(),
-                    CommandPayload::BcmSetRgb { red, green, blue, brightness } => BcmChangeBrightnessEvent {
+                    CommandPayload::BcmSetRgb { red, green, blue } => BcmChangeBrightnessEvent {
                         bcm_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
-                        value: BcmValue::Rgb(red, green, blue, brightness),
+                        value: BcmValue::Rgb(red, green, blue),
                     }
                     .to_packet(),
-                    CommandPayload::BcmSetRgbw { red, green, blue, white, brightness } => BcmChangeBrightnessEvent {
+                    CommandPayload::BcmSetRgbw { red, green, blue, white } => BcmChangeBrightnessEvent {
                         bcm_address: device_command.peripheral_address,
                         transmitter_address: programmer.programmer_address,
                         index: device_command.peripheral_index,
-                        value: BcmValue::Rgbw(red, green, blue, white, brightness),
+                        value: BcmValue::Rgbw(red, green, blue, white),
                     }
                     .to_packet(),
                 };
